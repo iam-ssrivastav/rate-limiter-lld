@@ -15,83 +15,77 @@ Exact reflection of all classes, fields, visibility modifiers, concurrency primi
 classDiagram
     direction TB
 
-    package ratelimiter {
-        class RateLimiter {
-            <<interface>>
-            +allowRequest() boolean
-            +allowRequest(tokens: int) boolean*
-        }
+    class RateLimiter {
+        <<interface>>
+        +allowRequest() boolean
+        +allowRequest(tokens: int) boolean
     }
 
-    package ratelimiter.impl {
-        class TokenBucketRateLimiter {
-            -capacity: long
-            -refillRatePerSecond: double
-            -availableTokens: double
-            -lastRefillTimestampNanos: long
-            -lock: ReentrantLock
-            +TokenBucketRateLimiter(capacity: long, refillRate: double)
-            +allowRequest(tokens: int) boolean
-            +getAvailableTokens() double
-            -refill() void
-        }
-
-        class LeakyBucketRateLimiter {
-            -capacity: long
-            -leakRatePerSecond: double
-            -waterLevel: double
-            -lastLeakTimestampNanos: long
-            -lock: ReentrantLock
-            +LeakyBucketRateLimiter(capacity: long, leakRate: double)
-            +allowRequest(tokens: int) boolean
-            +getWaterLevel() double
-            -leak() void
-        }
-
-        class FixedWindowRateLimiter {
-            -maxRequests: int
-            -windowSizeInMillis: long
-            -currentWindowStart: volatile long
-            -requestCount: AtomicInteger
-            -windowResetLock: Object
-            +FixedWindowRateLimiter(maxRequests: int, windowSizeInMillis: long)
-            +allowRequest(tokens: int) boolean
-            +getRequestCount() int
-        }
-
-        class SlidingWindowLogRateLimiter {
-            -maxRequests: int
-            -windowSizeInMillis: long
-            -requestTimestamps: Deque~Long~
-            -lock: ReentrantLock
-            +SlidingWindowLogRateLimiter(maxRequests: int, windowSizeInMillis: long)
-            +allowRequest(tokens: int) boolean
-            +getCurrentLogSize() int
-        }
-
-        class SlidingWindowCounterRateLimiter {
-            -maxRequests: int
-            -windowSizeInMillis: long
-            -currentWindowStart: long
-            -currentWindowCount: int
-            -previousWindowCount: int
-            -lock: ReentrantLock
-            +SlidingWindowCounterRateLimiter(maxRequests: int, windowSizeInMillis: long)
-            +allowRequest(tokens: int) boolean
-            +getEstimatedCount() double
-            -advanceWindow(now: long) void
-        }
+    class TokenBucketRateLimiter {
+        -capacity: long
+        -refillRatePerSecond: double
+        -availableTokens: double
+        -lastRefillTimestampNanos: long
+        -lock: ReentrantLock
+        +TokenBucketRateLimiter(capacity: long, refillRate: double)
+        +allowRequest(tokens: int) boolean
+        +getAvailableTokens() double
+        -refill() void
     }
 
-    package ratelimiter.manager {
-        class RateLimiterManager {
-            -clientLimiters: ConcurrentMap~String, RateLimiter~
-            -limiterFactory: Function~String, RateLimiter~
-            +RateLimiterManager(capacity: long, refillRate: double)
-            +RateLimiterManager(limiterFactory: Function)
-            +isAllowed(clientId: String) boolean
-            +getTrackedClientCount() int
-        }
+    class LeakyBucketRateLimiter {
+        -capacity: long
+        -leakRatePerSecond: double
+        -waterLevel: double
+        -lastLeakTimestampNanos: long
+        -lock: ReentrantLock
+        +LeakyBucketRateLimiter(capacity: long, leakRate: double)
+        +allowRequest(tokens: int) boolean
+        +getWaterLevel() double
+        -leak() void
+    }
+
+    class FixedWindowRateLimiter {
+        -maxRequests: int
+        -windowSizeInMillis: long
+        -currentWindowStart: volatile long
+        -requestCount: AtomicInteger
+        -windowResetLock: Object
+        +FixedWindowRateLimiter(maxRequests: int, windowSizeInMillis: long)
+        +allowRequest(tokens: int) boolean
+        +getRequestCount() int
+    }
+
+    class SlidingWindowLogRateLimiter {
+        -maxRequests: int
+        -windowSizeInMillis: long
+        -requestTimestamps: Deque~Long~
+        -lock: ReentrantLock
+        +SlidingWindowLogRateLimiter(maxRequests: int, windowSizeInMillis: long)
+        +allowRequest(tokens: int) boolean
+        +getCurrentLogSize() int
+    }
+
+    class SlidingWindowCounterRateLimiter {
+        -maxRequests: int
+        -windowSizeInMillis: long
+        -currentWindowStart: long
+        -currentWindowCount: int
+        -previousWindowCount: int
+        -lock: ReentrantLock
+        +SlidingWindowCounterRateLimiter(maxRequests: int, windowSizeInMillis: long)
+        +allowRequest(tokens: int) boolean
+        +getEstimatedCount() double
+        -advanceWindow(now: long) void
+    }
+
+    class RateLimiterManager {
+        -clientLimiters: ConcurrentMap~String, RateLimiter~
+        -limiterFactory: Function~String, RateLimiter~
+        +RateLimiterManager(capacity: long, refillRate: double)
+        +RateLimiterManager(limiterFactory: Function)
+        +isAllowed(clientId: String) boolean
+        +getTrackedClientCount() int
     }
 
     RateLimiter <|.. TokenBucketRateLimiter : implements
